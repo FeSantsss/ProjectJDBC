@@ -16,64 +16,38 @@ public class Program {
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.US);
-		String sqlDepartment = "SELECT * From seller";
-		String sqlInsertSeller = 
-				"INSERT INTO seller (Name, Email, BirthDate, BaseSalary, DepartmentId) VALUES (?, ?, ?, ?, ?)";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String sqlSeller = "SELECT * From seller";
+		String updateSeller = "UPDATE seller SET BaseSalary = BaseSalary + ? WHERE Id = ?";
+		
 		
 		try (Connection conn = DB.getConnection();
-				PreparedStatement st = conn.prepareStatement(sqlInsertSeller);
+				PreparedStatement st = conn.prepareStatement(updateSeller);
 				Scanner sc = new Scanner(System.in)){
 			
-			while (true) {
-				System.out.print("Deseja adicionar um vendedor novo? (s/n) ");
-				char addOrNotSeller = sc.next().toLowerCase().charAt(0);
-				if (addOrNotSeller == 'n') {
-					break;
-				} else {
-					System.out.print("Digite o nome: ");
-					sc.nextLine(); 
-					String name = sc.nextLine();
-					System.out.print("Digite o email: ");
-					String email = sc.next();
-					
-					System.out.print("Digite a data de nascimento (YYYY-MM-DD): ");
-					String birthDate = sc.next();
-					java.util.Date date = sdf.parse(birthDate);
-					java.sql.Date sqlDate = new java.sql.Date(date.getTime());
-					
-					System.out.print("Digite o salario base: ");
-					double baseSalary = sc.nextDouble();
-					System.out.print("Digite o ID do departamento (1 a 4): ");
-					int departmentId = sc.nextInt();
-					
-					st.setString(1, name);
-					st.setString(2, email);
-					st.setDate(3, sqlDate);
-					st.setDouble(4, baseSalary);
-					st.setInt(5, departmentId);
-					
-					int rowsAffected = st.executeUpdate();
-					
-					System.out.println();
-					
-					System.out.println("Done! Rows affected: " + rowsAffected);
-					
-					System.out.println();
-					
-					try (Statement st2 = conn.createStatement();
-							ResultSet rs = st2.executeQuery(sqlDepartment)) {
-						while (rs.next()) {
-							System.out.println(rs.getInt("Id") 
-									+ " - " + rs.getString("Name") 
-									+ ", " + rs.getString("Email")
-									+ ", " + sdf.format(rs.getDate("BirthDate")) 
-									+ ", " + rs.getDouble("BaseSalary")
-									+ ", " + rs.getInt("DepartmentId"));
-						}
-					}
-				}
+			System.out.print("Adicione o ID de identificação do vendedor: ");
+			int id = sc.nextInt();
+			System.out.print("Adicione o aumento do salário: ");
+			double percentage = sc.nextDouble();
+			
+			st.setDouble(1, percentage);
+			st.setInt(2, id);
+			
+			int rowsAffected = st.executeUpdate();
+			
+			if (rowsAffected != 0) {
+				System.out.println("Feito! Linhas afetadas: " + rowsAffected);
+			}else {
+				System.out.println("A mudança não foi concedida!");
 			}
+			
+			ResultSet rs = st.executeQuery(sqlSeller);
+			while (rs.next()) {
+				System.out.println(rs.getInt("Id") 
+						+ " - " + rs.getString("Name") 
+						+ ", " + String.format("%.2f", rs.getDouble("BaseSalary")));
+			}
+			
+			
 		}catch (SQLException e) {
 			throw new DbException(e.getMessage());
 		}catch (Exception e) {
