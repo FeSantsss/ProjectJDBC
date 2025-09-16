@@ -4,33 +4,27 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Scanner;
 
 import db.DB;
-import db.DbException;
+import db.DbIntegrityException;
 
 public class Program {
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.US);
 		String sqlSeller = "SELECT * From seller";
-		String updateSeller = "UPDATE seller SET BaseSalary = BaseSalary + ? WHERE Id = ?";
-		
+		String DeleteSeller = "DELETE From seller WHERE id = ?";		
 		
 		try (Connection conn = DB.getConnection();
-				PreparedStatement st = conn.prepareStatement(updateSeller);
+				PreparedStatement st = conn.prepareStatement(DeleteSeller);
 				Scanner sc = new Scanner(System.in)){
 			
-			System.out.print("Adicione o ID de identificação do vendedor: ");
+			System.out.print("Adicione o ID de identificação do vendedor pra remoção: ");
 			int id = sc.nextInt();
-			System.out.print("Adicione o aumento do salário: ");
-			double percentage = sc.nextDouble();
 			
-			st.setDouble(1, percentage);
-			st.setInt(2, id);
+			st.setInt(1, id);
 			
 			int rowsAffected = st.executeUpdate();
 			
@@ -49,9 +43,7 @@ public class Program {
 			
 			
 		}catch (SQLException e) {
-			throw new DbException(e.getMessage());
-		}catch (Exception e) {
-			e.printStackTrace();
+			throw new DbIntegrityException(e.getMessage());
 		}
 
 	}
